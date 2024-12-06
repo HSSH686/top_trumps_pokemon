@@ -1,19 +1,15 @@
 # Top trumps: Pokemon
 
-# Multiple rounds
-# Opponent chooses on even rounds
-# Attack, defence and speed stats added
-# No duplicates
-
 # Import modules
 import random
 import requests
 
-# Constants: minimum and maximum values for Pokemon IDs, max number of invalid responses, max number of rounds
+# Constants: minimum and maximum values for Pokemon IDs, max number of invalid responses, max number of rounds, stats
 INVALID_RESPONSE = 3
 MIN_ID = 1
 MAX_ID = 151
 MAX_ROUNDS = 10
+STATS_USED = ["height", "weight", "attack", "defence", "speed"]
 
 # Definition asking if player ready to play
 def ready_to_play(counter = 0):
@@ -51,7 +47,7 @@ def get_pokemon_data(pokemon_drawn, counter = 0):
         return response.json()
     # End game if too many errors while retrieving ID
     elif counter >= INVALID_RESPONSE:
-        print("Too many errors while retreiving ID.")
+        print("Too many errors while retrieving ID.")
         exit()
     # Get another random id if id invalid
     else:
@@ -73,19 +69,16 @@ def create_pokemon_dictionary(pokemon_drawn):
     speed = 0
 
     for i in range(length_stats):
-        stat = data_stats[i]
         if data_stats[i]["stat"]["name"] == "attack":
             attack = data_stats[i]["base_stat"]
             break
 
     for i in range(length_stats):
-        stat = data_stats[i]
         if data_stats[i]["stat"]["name"] == "defense":
             defence = data_stats[i]["base_stat"]
             break
 
     for i in range(length_stats):
-        stat = data_stats[i]
         if data_stats[i]["stat"]["name"] == "speed":
             speed = data_stats[i]["base_stat"]
             break
@@ -94,30 +87,31 @@ def create_pokemon_dictionary(pokemon_drawn):
     return {
         "name": data["name"],
         "id": data["id"],
-        "height": data["height"],
-        "weight": data["weight"],
-        "attack": attack,
-        "defence": defence,
-        "speed": speed,
+        STATS_USED[0]: data["height"],
+        STATS_USED[1]: data["weight"],
+        STATS_USED[2]: attack,
+        STATS_USED[3]: defence,
+        STATS_USED[4]: speed,
     }
 
 
 # Function asking the user which stat they want to use #TO-DO: limit incorrect input
 def choose_stat(name, pokemon_stats, player_score, opponent_score, counter=0):
-    print(">> a: height    b: weight    c: attack    d: defence    e: speed")
+    print(f">> a: {STATS_USED[0]}    b: {STATS_USED[1]}    "
+          f"c: {STATS_USED[2]}   d: {STATS_USED[3]}    e: {STATS_USED[4]}")
     stat_to_play = input("Choice: ").lower()
 
     # Return stat if input matches letter or name of stat
-    if stat_to_play == "a" or stat_to_play == "height":
-        return "height"
-    elif stat_to_play == "b" or stat_to_play == "weight":
-        return "weight"
-    elif stat_to_play == "c" or stat_to_play == "attack":
-        return "attack"
-    elif stat_to_play == "d" or stat_to_play == "defence":
-        return "defence"
-    elif stat_to_play == "e" or stat_to_play == "speed":
-        return "speed"
+    if stat_to_play == "a" or stat_to_play == STATS_USED[0]: # height
+        return STATS_USED[0]
+    elif stat_to_play == "b" or stat_to_play == STATS_USED[1]: # weight
+        return STATS_USED[1]
+    elif stat_to_play == "c" or stat_to_play == STATS_USED[2]: # attack
+        return STATS_USED[2]
+    elif stat_to_play == "d" or stat_to_play == STATS_USED[3]: # defence
+        return STATS_USED[3]
+    elif stat_to_play == "e" or stat_to_play == STATS_USED[4]: # speed
+        return STATS_USED[4]
     # If incorrect input entered too many times, game ends
     elif counter >= INVALID_RESPONSE:
         print("-----------------------------------------")
@@ -132,25 +126,30 @@ def choose_stat(name, pokemon_stats, player_score, opponent_score, counter=0):
 
 # Function for opponent to choose stat
 def opponent_choice():
-    stats = ["height", "weight", "attack", "defence", "speed"]
     print("-----------------------------------------")
 
-    stat_chosen = random.choice(stats)
+    stat_chosen = random.choice(STATS_USED)
     print(f"Your opponent chose to play the {stat_chosen} stat.")
 
     return stat_chosen
 
 # Function asking player if they want to continue playing
-def continue_play():
+def continue_play(name, player_score, opponent_score, counter = 0):
     confirmation = input("Continue playing? (Y/N) ").lower()
 
     if confirmation == "y":
         return True
     elif confirmation == "n":
         return False
+    # Return false if invalid input typed too many times. This will end game.
+    elif counter >= INVALID_RESPONSE:
+        print("-----------------------------------------")
+        print("Invalid input entered too many times.")
+        return False
     else:
         print("Input invalid. ", end="")
-        return continue_play()
+        counter += 1
+        return continue_play(name, player_score, opponent_score, counter)
 
 
 # Function to print final scores
@@ -179,11 +178,11 @@ def run_round(name, round, player_score, opponent_score, pokemon_drawn):
     # Show player what their stats are for the Pokemon they drew
     print(f"You drew {player_pokemon["name"].title()} (Pokemon ID: {player_pokemon["id"]}). "
           f"Here are your Pokemon's stats: ")
-    print(f">> Height: {player_pokemon["height"]}")
-    print(f">> Weight: {player_pokemon["weight"]}")
-    print(f">> Attack: {player_pokemon["attack"]}")
-    print(f">> Defence: {player_pokemon["defence"]}")
-    print(f">> Speed: {player_pokemon["speed"]}")
+    print(f">> {STATS_USED[0].title()}: {player_pokemon[STATS_USED[0]]}") # height
+    print(f">> {STATS_USED[1].title()}: {player_pokemon[STATS_USED[1]]}") # weight
+    print(f">> {STATS_USED[2].title()}: {player_pokemon[STATS_USED[2]]}") # attack
+    print(f">> {STATS_USED[3].title()}: {player_pokemon[STATS_USED[3]]}") # defence
+    print(f">> {STATS_USED[4].title()}: {player_pokemon[STATS_USED[4]]}") # speed
 
     # Opponent's choice on even rounds
     if round % 2 == 0:
@@ -240,7 +239,7 @@ def run_round(name, round, player_score, opponent_score, pokemon_drawn):
         exit()
 
     # Confirm whether player want to keep playing. If False, end game.
-    keep_playing = continue_play()
+    keep_playing = continue_play(name, player_score, opponent_score)
 
     if keep_playing == True:
         return run_round(name, round + 1, player_score, opponent_score, pokemon_drawn)
@@ -266,8 +265,14 @@ def run_game():
     print("-----------------------------------------")
     print("-----------------------------------------")
 
-    # Asking user name
-    name = input("Insert player name: ")
+    # Asking user name (user name must be at least one character in length
+    name = ""
+    while len(name) < 1:
+        name = input("Insert player name: ")
+
+        if len(name) < 1:
+            print("Name must be at least one character. ", end="")
+
     print(f"Hi {name}! ", end="")
 
     # Asking player if they are ready to play
@@ -284,14 +289,8 @@ def run_game():
 
 run_game()
 
-# TO-DO
-# 1. Input name of player [done]
-# 2. Max number of rounds (maybe 10) [done]
-# 3. a, b, c, d, e
-# 4. Thanks to name of player
 
 # Maybe allow user to insert numerical value of stat as well
 # Make opponent more intelligent when choosing which stat to play
 # Maybe allow multiple cards to be drawn (though does top trumps allow that?)
-# >> For above, maybe just set max number of rounds at like 20
-# Maximum number of rounds
+
