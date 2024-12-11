@@ -17,7 +17,7 @@ def ready_to_play(counter = 0):
 
     if response == "y":
         return True
-    elif response == "n":
+    elif response == "n" or response == "exit":
         return False
     # Default to "n" if invalid response recorded too many times
     elif counter >= INVALID_RESPONSE:
@@ -113,7 +113,7 @@ def choose_stat(name, pokemon_stats, player_score, opponent_score, counter=0):
     elif stat_to_play == "e" or stat_to_play == STATS_USED[4]: # speed
         return STATS_USED[4]
     # If incorrect input entered too many times, game ends
-    elif counter >= INVALID_RESPONSE:
+    elif counter >= INVALID_RESPONSE or stat_to_play == "exit":
         print("-----------------------------------------")
         print("Invalid input entered too many times.")
         print_final_scores(name, player_score, opponent_score)
@@ -139,7 +139,7 @@ def continue_play(name, player_score, opponent_score, counter = 0):
 
     if confirmation == "y":
         return True
-    elif confirmation == "n":
+    elif confirmation == "n" or confirmation == "exit":
         return False
     # Return false if invalid input typed too many times. This will end game.
     elif counter >= INVALID_RESPONSE:
@@ -195,6 +195,11 @@ def run_round(name, round, player_score, opponent_score, pokemon_drawn):
             if counter >= INVALID_RESPONSE:
                 print("-----------------------------------------")
                 print("Incorrect key typed too many times.")
+                # Print final tally
+                print_final_scores(name, player_score, opponent_score)
+                exit()
+
+            if user_input == "exit":
                 # Print final tally
                 print_final_scores(name, player_score, opponent_score)
                 exit()
@@ -273,7 +278,18 @@ def run_game():
         if len(name) < 1:
             print("Name must be at least one character. ", end="")
 
-    print(f"Hi {name}! ", end="")
+    print(f"Hi {name}!")
+    print("-----------------------------------------")
+    print("HOW TO PLAY:")
+    print("1. You and your opponent (the computer) will draw a random Pokemon.")
+    print("2. You will pick a stat to compare.")
+    print("3. The stats of your card and your opponent's card are compared.")
+    print("4. The player who has the higher stat wins.")
+    print("5. You and the opponent take turns to choose stats.\n")
+    print("OTHER:")
+    print("> Type 'exit' to leave the game at any time.")
+    print("> The maximum number of rounds that can be played is 10.")
+    print("-----------------------------------------")
 
     # Asking player if they are ready to play
     response = ready_to_play()
@@ -289,8 +305,14 @@ def run_game():
 
 run_game()
 
+# FEATURES:
+# Multiple rounds
+# Opponent choice on even rounds
+# No duplicate pokemon
+# Max number of rounds
+# Type 'exit' at any point to end game
+# Invalid input = request input again
 
-# Maybe allow user to insert numerical value of stat as well
-# Make opponent more intelligent when choosing which stat to play
-# Maybe allow multiple cards to be drawn (though does top trumps allow that?)
-
+# FURTHER:
+# Make opponent's choice more intelligent
+# Allow multiple cards to be drawn (although the game would not really be Top Trumps anymore)
